@@ -296,7 +296,10 @@ function renderLobby(players){
         :`<div class="status-msg">⏳ Waiting for host to start…</div>`}
       <button class="btn btn-danger" id="btnLeave" style="margin-top:8px">← LEAVE</button>
     </div>`;
-  if(isHost) document.getElementById('btnStart').addEventListener('click',()=>{if(entries.length>=2)startGame();});
+  if(isHost) document.getElementById('btnStart').addEventListener('click',()=>{
+    const count=document.getElementById('playerList').querySelectorAll('.player-row').length;
+    if(count>=2)startGame();
+  });
   document.getElementById('btnLeave').addEventListener('click',leaveRoom);
 }
 

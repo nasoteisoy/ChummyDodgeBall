@@ -2,155 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>🏐 ChummyBall</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box}
-  :root{
-    --bg:#050810;--panel:#0a0f1e;--border:#1a2a4a;
-    --red:#ff2d55;--cyan:#00f5d4;--yellow:#ffd60a;
-    --blue:#0077ff;--green:#39ff14;--purple:#bf5fff;
-    --text:#c8d8f0;--dim:#4a5a7a;
-  }
-  body{
-    background:var(--bg);color:var(--text);
-    font-family:'Share Tech Mono',monospace;
-    display:flex;align-items:center;justify-content:center;
-    min-height:100vh;overflow:hidden;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 20% -10%,rgba(0,119,255,.15),transparent),
-      radial-gradient(ellipse 60% 40% at 80% 110%,rgba(0,245,212,.1),transparent);
-  }
-  #ui{
-    width:420px;position:relative;
-    animation:fadeIn .4s ease;
-  }
-  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .logo{
-    font-family:'Orbitron',monospace;font-size:2.8rem;font-weight:900;
-    text-align:center;letter-spacing:4px;margin-bottom:6px;
-    background:linear-gradient(135deg,var(--cyan),var(--blue),var(--red));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    background-clip:text;
-    filter:drop-shadow(0 0 20px rgba(0,245,212,.4));
-  }
-  .tagline{text-align:center;color:var(--dim);font-size:.75rem;letter-spacing:3px;margin-bottom:32px;text-transform:uppercase}
-  .panel{
-    background:var(--panel);border:1px solid var(--border);
-    border-radius:8px;padding:28px;
-    box-shadow:0 0 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
-  }
-  .section-label{
-    font-size:.6rem;letter-spacing:3px;color:var(--dim);
-    text-transform:uppercase;margin-bottom:8px;
-  }
-  input{
-    width:100%;background:rgba(255,255,255,.04);
-    border:1px solid var(--border);border-radius:4px;
-    color:var(--text);padding:12px 14px;
-    font-family:'Share Tech Mono',monospace;font-size:.9rem;
-    transition:border-color .2s,box-shadow .2s;outline:none;
-    letter-spacing:2px;
-  }
-  input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,245,212,.12)}
-  input::placeholder{color:var(--dim);letter-spacing:1px}
-  .btn{
-    display:block;width:100%;padding:13px;border:none;border-radius:4px;
-    font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
-    letter-spacing:2px;text-transform:uppercase;cursor:pointer;
-    transition:all .15s ease;margin-top:10px;
-  }
-  .btn-primary{background:var(--cyan);color:#050810}
-  .btn-primary:hover{background:#00ddc0;box-shadow:0 0 20px rgba(0,245,212,.4)}
-  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
-  .btn-secondary:hover{border-color:var(--text);background:rgba(255,255,255,.04)}
-  .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,45,85,.3)}
-  .btn-danger:hover{background:rgba(255,45,85,.1)}
-  .btn-go{background:var(--green);color:#050810}
-  .btn-go:hover{background:#2ddf0f;box-shadow:0 0 20px rgba(57,255,20,.4)}
-  .room-code{
-    font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;
-    letter-spacing:10px;color:var(--yellow);text-align:center;
-    padding:16px;background:rgba(255,214,10,.06);
-    border:1px solid rgba(255,214,10,.2);border-radius:6px;margin:12px 0;
-    text-shadow:0 0 20px rgba(255,214,10,.5);
-  }
-  .player-list{margin:12px 0}
-  .player-row{
-    display:flex;align-items:center;gap:10px;
-    padding:10px 12px;border-radius:4px;
-    background:rgba(255,255,255,.03);border:1px solid var(--border);
-    margin-bottom:6px;transition:border-color .2s;
-  }
-  .player-row:hover{border-color:rgba(255,255,255,.1)}
-  .player-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px currentColor}
-  .player-name{flex:1;font-size:.85rem}
-  .you-badge{
-    font-size:.55rem;letter-spacing:2px;padding:2px 6px;
-    background:rgba(0,245,212,.15);color:var(--cyan);border-radius:2px;
-  }
-  .divider{height:1px;background:var(--border);margin:18px 0}
-  .hint{font-size:.65rem;color:var(--dim);text-align:center;letter-spacing:1px;margin-top:12px;line-height:1.7}
-  .status-msg{
-    text-align:center;color:var(--dim);font-size:.75rem;
-    letter-spacing:2px;padding:14px;
-    border:1px dashed rgba(255,255,255,.06);border-radius:4px;
-    margin-top:10px;
-  }
-  .err{color:var(--red);font-size:.75rem;margin-top:6px;text-align:center;min-height:16px}
-  #canvasWrap{
-    display:none;position:relative;
-    box-shadow:0 0 60px rgba(0,119,255,.2),0 0 120px rgba(0,0,0,.8);
-  }
-  canvas{display:block}
-  #gameoverOverlay{
-    display:none;position:absolute;inset:0;
-    background:rgba(5,8,16,.92);
-    backdrop-filter:blur(8px);
-    flex-direction:column;align-items:center;justify-content:center;
-    font-family:'Orbitron',monospace;text-align:center;
-    animation:fadeIn .5s ease;
-  }
-  #gameoverOverlay.show{display:flex}
-  #gameoverOverlay h2{
-    font-size:1rem;letter-spacing:4px;color:var(--dim);
-    text-transform:uppercase;margin-bottom:10px;
-  }
-  #gameoverOverlay .winner-name{
-    font-size:2.2rem;font-weight:900;
-    background:linear-gradient(135deg,var(--yellow),var(--red));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    background-clip:text;margin-bottom:6px;
-    filter:drop-shadow(0 0 15px rgba(255,214,10,.5));
-  }
-  #gameoverOverlay .sub{
-    font-family:'Share Tech Mono',monospace;
-    font-size:.75rem;color:var(--dim);letter-spacing:2px;margin-bottom:30px;
-  }
-  .go-btns{display:flex;gap:10px}
-  .go-btn{
-    padding:10px 20px;border-radius:4px;font-family:'Orbitron',monospace;
-    font-size:.65rem;font-weight:700;letter-spacing:2px;
-    text-transform:uppercase;cursor:pointer;border:none;
-    transition:all .15s;
-  }
-  .go-btn.again{background:var(--green);color:#050810}
-  .go-btn.again:hover{box-shadow:0 0 20px rgba(57,255,20,.4)}
-  .go-btn.menu{background:transparent;color:var(--text);border:1px solid var(--border)}
-  .go-btn.menu:hover{border-color:var(--text)}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+:root{
+  --bg:#050810;--panel:#0a0f1e;--border:#1a2a4a;
+  --red:#ff2d55;--cyan:#00f5d4;--yellow:#ffd60a;
+  --blue:#0077ff;--green:#39ff14;--dim:#4a5a7a;--text:#c8d8f0;
+}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Share Tech Mono',monospace;
+  display:flex;align-items:center;justify-content:center;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%,rgba(0,119,255,.15),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 110%,rgba(0,245,212,.1),transparent);
+}
+#ui{width:420px;max-width:96vw;max-height:96vh;overflow-y:auto;position:relative;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.logo{
+  font-family:'Orbitron',monospace;font-size:2.6rem;font-weight:900;
+  text-align:center;letter-spacing:4px;margin-bottom:4px;
+  background:linear-gradient(135deg,var(--cyan),var(--blue),var(--red));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(0,245,212,.35));
+}
+.tagline{text-align:center;color:var(--dim);font-size:.65rem;letter-spacing:3px;margin-bottom:24px;text-transform:uppercase}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;
+  box-shadow:0 0 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)}
+.lbl{font-size:.6rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:7px}
+input{
+  width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px;
+  color:var(--text);padding:11px 13px;font-family:'Share Tech Mono',monospace;font-size:.9rem;
+  transition:border-color .2s,box-shadow .2s;outline:none;letter-spacing:2px;
+}
+input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,245,212,.1)}
+input::placeholder{color:var(--dim);letter-spacing:1px}
+.btn{
+  display:block;width:100%;padding:12px;border:none;border-radius:4px;
+  font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:8px;
+}
+.btn-primary{background:var(--cyan);color:#050810}
+.btn-primary:active{background:#00c0a8}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-secondary:active{background:rgba(255,255,255,.06)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,45,85,.25)}
+.btn-go{background:var(--green);color:#050810}
+.btn-go:active{background:#2dcc0c}
+.room-code{
+  font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:900;
+  letter-spacing:9px;color:var(--yellow);text-align:center;
+  padding:14px;background:rgba(255,214,10,.06);
+  border:1px solid rgba(255,214,10,.2);border-radius:6px;margin:10px 0;
+  text-shadow:0 0 18px rgba(255,214,10,.45);
+}
+.player-row{
+  display:flex;align-items:center;gap:10px;padding:9px 11px;
+  border-radius:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:5px;
+}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 7px currentColor}
+.you-badge{font-size:.5rem;letter-spacing:2px;padding:2px 6px;background:rgba(0,245,212,.12);color:var(--cyan);border-radius:2px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.err{color:var(--red);font-size:.7rem;margin-top:5px;text-align:center;min-height:15px}
+.status-msg{text-align:center;color:var(--dim);font-size:.72rem;letter-spacing:2px;padding:13px;border:1px dashed rgba(255,255,255,.06);border-radius:4px;margin-top:8px}
+.room-card{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 13px;border-radius:4px;background:rgba(255,255,255,.03);
+  border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:border-color .2s;
+}
+.room-card:active{background:rgba(255,255,255,.07);border-color:var(--cyan)}
+.rc{font-family:'Orbitron',monospace;color:var(--yellow);font-size:.85rem;letter-spacing:3px}
+.ri{font-size:.65rem;color:var(--dim);margin-top:2px}
+.rj{font-size:.6rem;font-family:'Orbitron',monospace;color:var(--cyan);letter-spacing:2px}
+.empty-rooms{text-align:center;color:var(--dim);font-size:.7rem;padding:20px;letter-spacing:1px}
+#canvasWrap{display:none;position:relative}
+canvas{display:block}
+#goOverlay{
+  display:none;position:absolute;inset:0;background:rgba(5,8,16,.92);
+  backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;text-align:center;animation:fadeIn .5s ease;
+}
+#goOverlay.show{display:flex}
+#goOverlay h2{font-size:.85rem;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.winner-name{
+  font-size:2rem;font-weight:900;
+  background:linear-gradient(135deg,var(--yellow),var(--red));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:4px;filter:drop-shadow(0 0 14px rgba(255,214,10,.5));
+}
+.go-sub{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--dim);letter-spacing:2px;margin-bottom:24px}
+.go-btns{display:flex;gap:10px}
+.go-btn{
+  padding:10px 20px;border-radius:4px;font-family:'Orbitron',monospace;
+  font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s;
+}
+.go-btn.again{background:var(--green);color:#050810}
+.go-btn.menu{background:transparent;color:var(--text);border:1px solid var(--border)}
+/* Touch controls */
+#touchControls{display:none;position:absolute;inset:0;pointer-events:none}
+#joyZone{
+  position:absolute;left:14px;bottom:14px;width:110px;height:110px;
+  background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.14);
+  border-radius:50%;pointer-events:all;touch-action:none;
+}
+#joyKnob{
+  position:absolute;width:44px;height:44px;
+  background:rgba(0,245,212,.45);border:2px solid var(--cyan);border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 14px rgba(0,245,212,.35);
+}
+#throwBtn{
+  position:absolute;right:18px;bottom:24px;width:76px;height:76px;
+  background:rgba(255,45,85,.3);border:2px solid var(--red);border-radius:50%;
+  pointer-events:all;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:.5rem;font-weight:700;
+  letter-spacing:1px;color:var(--red);text-transform:uppercase;
+}
+#throwBtn.active{background:rgba(255,45,85,.55);box-shadow:0 0 18px rgba(255,45,85,.4)}
 </style>
 </head>
 <body>
-
 <div id="ui"></div>
-
 <div id="canvasWrap">
   <canvas id="canvas"></canvas>
-  <div id="gameoverOverlay">
+  <div id="touchControls">
+    <div id="joyZone"><div id="joyKnob"></div></div>
+    <div id="throwBtn">THROW</div>
+  </div>
+  <div id="goOverlay">
     <h2>🏆 winner</h2>
     <div class="winner-name" id="goWinner"></div>
-    <div class="sub" id="goSub">eliminated all opponents</div>
+    <div class="go-sub" id="goSub"></div>
     <div class="go-btns">
       <button class="go-btn again" id="goAgain">Play Again</button>
       <button class="go-btn menu" id="goMenu">Main Menu</button>
@@ -158,23 +146,18 @@
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getDatabase, ref, set, get, update, remove, onValue, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-
-// ── Firebase ──────────────────────────────────────────────────────────────────
-const firebaseConfig = {
+<script>
+firebase.initializeApp({
   apiKey:"AIzaSyDVbt_8GuRuHJRPAN7jFXbs_lJUfUHNxHE",
   authDomain:"chummy-games.firebaseapp.com",
   databaseURL:"https://chummy-games-default-rtdb.firebaseio.com",
   projectId:"chummy-games",storageBucket:"chummy-games.firebasestorage.app",
   messagingSenderId:"869241598273",
   appId:"1:869241598273:web:d97492b7308f785c37f1c0"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
+});
+const db = firebase.database();
 
-// ── PCID ──────────────────────────────────────────────────────────────────────
+// ── PCID ─────────────────────────────────────────────────────────────────────
 function getOrCreatePCID(){
   const k='ChummyGames-PC-ID';
   let id=localStorage.getItem(k);
@@ -185,595 +168,481 @@ function getOrCreatePCID(){
   return id;
 }
 function genCode(n){return Array.from({length:n},()=>'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)]).join('');}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 
 const myPCID=getOrCreatePCID();
 const COLORS=['#ff2d55','#00f5d4','#ffd60a','#0077ff','#39ff14','#bf5fff','#ff6b2b','#00cfff'];
+const isMobile='ontouchstart' in window;
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let myName=localStorage.getItem('ChummyGames-Name')||'';
-let roomCode=null,isHost=false,gameRunning=false;
-let hostInterval=null;
-let listeners=[];
-let localState=null;
-let keys={},mousePos={x:400,y:300},throwPending=false;
-let throwCooldown={};
-let ballSeq=0;
-let latestInputs={};
+let myName=null,roomCode=null,isHost=false,gameRunning=false;
+let hostInterval=null,listeners=[],roomsRef=null,roomsCb=null;
+let localState=null,keys={},mousePos={x:400,y:300},throwPending=false;
+let throwCooldown={},ballSeq=0,latestInputs={},trails=[];
+let touchJoy={x:0,y:0};
 
-// ── Canvas & Arena ────────────────────────────────────────────────────────────
-const AW=800,AH=550;
-const PAD=28;
-const PR=18,BR=9;
-const SPDUP=4,BSPD=9;
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-
-// ── UI helpers ────────────────────────────────────────────────────────────────
 const ui=document.getElementById('ui');
 const canvasWrap=document.getElementById('canvasWrap');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const AW=800,AH=550,PAD=28,PR=18,BR=9,SPDUP=4,BSPD=8.5;
+
+// ── DOM helpers ──────────────────────────────────────────────────────────────
 function clearUI(){ui.innerHTML='';ui.style.display='block';canvasWrap.style.display='none';}
 function showCanvas(){ui.style.display='none';canvasWrap.style.display='block';}
+function cleanListeners(){listeners.forEach(u=>u());listeners=[];}
+function stopRooms(){if(roomsRef&&roomsCb){roomsRef.off('value',roomsCb);roomsRef=null;roomsCb=null;}}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+async function boot(){
+  try{
+    const snap=await db.ref('dodgeball_players/'+myPCID).once('value');
+    if(snap.exists()&&snap.val().name){myName=snap.val().name;renderMenu();}
+    else renderLogin();
+  }catch(e){renderLogin();}
+}
 
 // ══ VIEWS ════════════════════════════════════════════════════════════════════
 
-function renderLogin(){
-  clearUI();
+function renderLogin(fromMenu=false){
+  clearUI();stopRooms();
   ui.innerHTML=`
     <div class="logo">CHUMMYBALL</div>
     <div class="tagline">2D Multiplayer Dodgeball</div>
     <div class="panel">
-      <div class="section-label">Your callsign</div>
-      <input id="nameIn" maxlength="14" placeholder="Enter name..." value="${myName}" autocomplete="off">
+      <div class="lbl">${fromMenu?'Change Callsign':'Choose a Callsign'}</div>
+      <input id="nameIn" maxlength="14" placeholder="Enter name..." value="${myName||''}" autocomplete="off">
       <div class="err" id="nameErr"></div>
-      <button class="btn btn-primary" id="btnEnter">▶ ENTER ARENA</button>
+      <button class="btn btn-primary" id="btnEnter">▶ CONFIRM</button>
+      ${fromMenu?`<button class="btn btn-secondary" id="btnBack">← BACK</button>`:''}
     </div>
-    <div class="hint">Local ID: ${myPCID.slice(0,4)}...${myPCID.slice(-4)}</div>`;
+    <div class="hint">ID: ${myPCID.slice(0,4)}···${myPCID.slice(-4)}</div>`;
   const inp=document.getElementById('nameIn');
   inp.focus();inp.select();
-  const go=()=>{
+  const go=async()=>{
     const n=inp.value.trim();
-    if(!n){document.getElementById('nameErr').textContent='Name cannot be empty';return;}
-    myName=n;localStorage.setItem('ChummyGames-Name',n);
+    if(!n){document.getElementById('nameErr').textContent='Name required';return;}
+    document.getElementById('btnEnter').textContent='SAVING...';
+    myName=n;
+    await db.ref('dodgeball_players/'+myPCID).set({name:n,updatedAt:Date.now()});
     renderMenu();
   };
   inp.addEventListener('keydown',e=>e.key==='Enter'&&go());
   document.getElementById('btnEnter').addEventListener('click',go);
+  if(fromMenu) document.getElementById('btnBack').addEventListener('click',renderMenu);
 }
 
 function renderMenu(){
-  clearUI();
+  clearUI();stopRooms();
   ui.innerHTML=`
     <div class="logo">CHUMMYBALL</div>
     <div class="tagline">2D Multiplayer Dodgeball</div>
     <div class="panel">
-      <div style="text-align:center;margin-bottom:20px">
-        <span style="color:var(--dim);font-size:.7rem;letter-spacing:2px">PLAYING AS </span>
-        <span style="color:var(--cyan);font-size:.9rem">${myName}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <span style="color:var(--dim);font-size:.65rem;letter-spacing:2px">PLAYING AS</span>
+        <span style="color:var(--cyan);font-family:'Orbitron',monospace;font-size:.85rem">${myName}</span>
       </div>
       <button class="btn btn-go" id="btnHost">⚡ CREATE ROOM</button>
-      <button class="btn btn-secondary" id="btnJoin">🔗 JOIN ROOM</button>
+      <div class="divider"></div>
+      <div class="lbl">Open Rooms</div>
+      <div id="roomList"><div class="empty-rooms">searching…</div></div>
       <div class="divider"></div>
       <button class="btn btn-danger" id="btnName">✏ Change Name</button>
     </div>
-    <div class="hint">WASD · MOVE &nbsp;|&nbsp; CLICK · THROW &nbsp;|&nbsp; LAST STANDING WINS</div>`;
+    <div class="hint">${isMobile?'Left joystick · Move &nbsp;|&nbsp; Tap right · Throw':'WASD · Move &nbsp;|&nbsp; Click · Throw'}<br>Last player standing wins!</div>`;
   document.getElementById('btnHost').addEventListener('click',hostRoom);
-  document.getElementById('btnJoin').addEventListener('click',renderJoin);
-  document.getElementById('btnName').addEventListener('click',renderLogin);
+  document.getElementById('btnName').addEventListener('click',()=>renderLogin(true));
+  listenRooms();
 }
 
-function renderJoin(){
-  clearUI();
-  ui.innerHTML=`
-    <div class="logo">CHUMMYBALL</div>
-    <div class="tagline">2D Multiplayer Dodgeball</div>
-    <div class="panel">
-      <div class="section-label">Room code</div>
-      <input id="codeIn" maxlength="6" placeholder="ABCDEF" autocomplete="off"
-        style="text-transform:uppercase;text-align:center;letter-spacing:8px;font-size:1.2rem">
-      <div class="err" id="joinErr"></div>
-      <button class="btn btn-primary" id="btnDoJoin">▶ JOIN</button>
-      <button class="btn btn-secondary" id="btnBack">← BACK</button>
-    </div>`;
-  const inp=document.getElementById('codeIn');
-  inp.focus();
-  const go=async()=>{
-    const code=inp.value.trim().toUpperCase();
-    document.getElementById('joinErr').textContent='';
-    if(code.length!==6){document.getElementById('joinErr').textContent='Enter 6-letter code';return;}
-    await joinRoom(code);
-  };
-  inp.addEventListener('keydown',e=>e.key==='Enter'&&go());
-  document.getElementById('btnDoJoin').addEventListener('click',go);
-  document.getElementById('btnBack').addEventListener('click',renderMenu);
+function listenRooms(){
+  stopRooms();
+  roomsRef=db.ref('dodgeball');
+  roomsCb=roomsRef.on('value',snap=>{
+    const el=document.getElementById('roomList');if(!el)return;
+    const data=snap.val()||{};
+    const open=Object.entries(data).filter(([,r])=>r.status==='lobby'&&r.lobby);
+    if(!open.length){el.innerHTML='<div class="empty-rooms">No open rooms — create one!</div>';return;}
+    el.innerHTML=open.map(([code,r])=>{
+      const n=Object.keys(r.lobby||{}).length;
+      return `<div class="room-card" data-code="${code}">
+        <div><div class="rc">${code}</div><div class="ri">${n} player${n!==1?'s':''} waiting</div></div>
+        <div class="rj">JOIN →</div></div>`;
+    }).join('');
+    el.querySelectorAll('.room-card').forEach(c=>c.addEventListener('click',()=>joinRoom(c.dataset.code)));
+  });
 }
 
 function renderLobby(players){
-  clearUI();
+  clearUI();stopRooms();
   const entries=Object.entries(players||{});
-  const playerRows=entries.map(([pcid,p])=>`
-    <div class="player-row">
-      <div class="player-dot" style="color:${p.color};background:${p.color}"></div>
-      <span class="player-name">${p.name}</span>
-      ${pcid===myPCID?'<span class="you-badge">YOU</span>':''}
-    </div>`).join('');
-
   ui.innerHTML=`
-    <div class="logo" style="font-size:1.8rem">CHUMMYBALL</div>
-    <div class="tagline" style="margin-bottom:16px">LOBBY</div>
+    <div class="logo" style="font-size:1.7rem">CHUMMYBALL</div>
+    <div class="tagline" style="margin-bottom:14px">LOBBY</div>
     <div class="panel">
-      <div class="section-label">Room Code</div>
+      <div class="lbl">Room Code</div>
       <div class="room-code">${roomCode}</div>
-      <div class="section-label" style="margin-top:16px">Players (${entries.length})</div>
-      <div class="player-list" id="playerList">${playerRows}</div>
+      <div class="lbl" style="margin-top:14px">Players (${entries.length})</div>
+      <div id="playerList">
+        ${entries.map(([pcid,p])=>`
+          <div class="player-row">
+            <div class="dot" style="color:${p.color};background:${p.color}"></div>
+            <span style="flex:1;font-size:.85rem">${p.name}</span>
+            ${pcid===myPCID?'<span class="you-badge">YOU</span>':''}
+          </div>`).join('')}
+      </div>
       ${isHost
-        ? `<button class="btn btn-go" id="btnStart">${entries.length<2?'⚠ NEED 2+ PLAYERS':'⚡ START GAME'}</button>`
-        : `<div class="status-msg">⏳ WAITING FOR HOST TO START...</div>`}
-      <button class="btn btn-danger" id="btnLeave" style="margin-top:8px">← LEAVE ROOM</button>
-    </div>
-    <div class="hint">WASD · MOVE &nbsp;|&nbsp; CLICK · THROW &nbsp;|&nbsp; LAST STANDING WINS</div>`;
-
-  if(isHost){
-    const btnStart=document.getElementById('btnStart');
-    btnStart.addEventListener('click',()=>{
-      if(entries.length>=2)startGame();
-    });
-  }
+        ?`<button class="btn btn-go" id="btnStart">${entries.length<2?'⚠ NEED 2+ PLAYERS':'⚡ START GAME'}</button>`
+        :`<div class="status-msg">⏳ Waiting for host to start…</div>`}
+      <button class="btn btn-danger" id="btnLeave" style="margin-top:8px">← LEAVE</button>
+    </div>`;
+  if(isHost) document.getElementById('btnStart').addEventListener('click',()=>{if(entries.length>=2)startGame();});
   document.getElementById('btnLeave').addEventListener('click',leaveRoom);
 }
 
 // ══ ROOM LOGIC ════════════════════════════════════════════════════════════════
 
 async function hostRoom(){
+  stopRooms();
   roomCode=genCode(6);isHost=true;
-  const colorIdx=0;
-  await set(ref(db,`dodgeball/${roomCode}`),{
-    status:'lobby',host:myPCID,
-    lobby:{[myPCID]:{name:myName,color:COLORS[colorIdx],colorIdx}}
-  });
-  onDisconnect(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`)).remove();
+  await db.ref('dodgeball/'+roomCode).set({status:'lobby',host:myPCID,lobby:{[myPCID]:{name:myName,color:COLORS[0],colorIdx:0}}});
+  db.ref('dodgeball/'+roomCode+'/lobby/'+myPCID).onDisconnect().remove();
   listenLobby();
 }
 
 async function joinRoom(code){
-  const snap=await get(ref(db,`dodgeball/${code}`));
-  if(!snap.exists()){document.getElementById('joinErr').textContent='Room not found';return;}
+  stopRooms();
+  const snap=await db.ref('dodgeball/'+code).once('value');
+  if(!snap.exists()){alert('Room not found');renderMenu();return;}
   const data=snap.val();
-  if(data.status!=='lobby'){document.getElementById('joinErr').textContent='Game already started';return;}
+  if(data.status!=='lobby'){alert('Game already started');renderMenu();return;}
   roomCode=code;isHost=false;
   const taken=new Set(Object.values(data.lobby||{}).map(p=>p.colorIdx));
   let ci=0;while(taken.has(ci))ci++;
-  await update(ref(db,`dodgeball/${roomCode}/lobby`),{
-    [myPCID]:{name:myName,color:COLORS[ci%COLORS.length],colorIdx:ci}
-  });
-  onDisconnect(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`)).remove();
+  await db.ref('dodgeball/'+roomCode+'/lobby/'+myPCID).set({name:myName,color:COLORS[ci%COLORS.length],colorIdx:ci});
+  db.ref('dodgeball/'+roomCode+'/lobby/'+myPCID).onDisconnect().remove();
   listenLobby();
 }
 
 async function leaveRoom(){
   cleanListeners();
-  await remove(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`));
+  await db.ref('dodgeball/'+roomCode+'/lobby/'+myPCID).remove();
   roomCode=null;isHost=false;
   renderMenu();
 }
 
 // ══ LISTENERS ════════════════════════════════════════════════════════════════
 
-function cleanListeners(){listeners.forEach(u=>u());listeners=[];}
-
 function listenLobby(){
   cleanListeners();
-  const unsub1=onValue(ref(db,`dodgeball/${roomCode}/lobby`),snap=>{
+  const lRef=db.ref('dodgeball/'+roomCode+'/lobby');
+  const c1=lRef.on('value',snap=>{
     const data=snap.val()||{};
     const el=document.getElementById('playerList');
     if(el){
       const entries=Object.entries(data);
       el.innerHTML=entries.map(([pcid,p])=>`
         <div class="player-row">
-          <div class="player-dot" style="color:${p.color};background:${p.color}"></div>
-          <span class="player-name">${p.name}</span>
+          <div class="dot" style="color:${p.color};background:${p.color}"></div>
+          <span style="flex:1;font-size:.85rem">${p.name}</span>
           ${pcid===myPCID?'<span class="you-badge">YOU</span>':''}
         </div>`).join('');
-      // Update start button
       const btn=document.getElementById('btnStart');
       if(btn) btn.textContent=entries.length<2?'⚠ NEED 2+ PLAYERS':'⚡ START GAME';
-    } else {
-      renderLobby(data);
-    }
+    } else renderLobby(data);
   });
-  listeners.push(unsub1);
-
-  const unsub2=onValue(ref(db,`dodgeball/${roomCode}/status`),snap=>{
-    if(snap.val()==='playing'){
-      cleanListeners();
-      if(!isHost) startClientGame();
-    }
-  });
-  listeners.push(unsub2);
+  listeners.push(()=>lRef.off('value',c1));
+  const sRef=db.ref('dodgeball/'+roomCode+'/status');
+  const c2=sRef.on('value',snap=>{if(snap.val()==='playing'){cleanListeners();if(!isHost)startClientGame();}});
+  listeners.push(()=>sRef.off('value',c2));
 }
 
 function listenGame(){
   cleanListeners();
-  const unsub1=onValue(ref(db,`dodgeball/${roomCode}/gameState`),snap=>{
-    if(snap.val()){localState=snap.val();if(gameRunning)renderFrame();}
-  });
-  listeners.push(unsub1);
-  const unsub2=onValue(ref(db,`dodgeball/${roomCode}/status`),snap=>{
-    if(snap.val()==='gameover'){
-      get(ref(db,`dodgeball/${roomCode}/winner`)).then(s=>showGameOver(s.val()));
-    }
-  });
-  listeners.push(unsub2);
+  const gsRef=db.ref('dodgeball/'+roomCode+'/gameState');
+  const c1=gsRef.on('value',snap=>{if(snap.val()){localState=snap.val();if(gameRunning)renderFrame();}});
+  listeners.push(()=>gsRef.off('value',c1));
+  const sRef=db.ref('dodgeball/'+roomCode+'/status');
+  const c2=sRef.on('value',snap=>{if(snap.val()==='gameover')db.ref('dodgeball/'+roomCode+'/winner').once('value').then(s=>showGameOver(s.val()));});
+  listeners.push(()=>sRef.off('value',c2));
 }
 
 function listenInputs(){
-  const unsub=onValue(ref(db,`dodgeball/${roomCode}/inputs`),snap=>{
-    latestInputs=snap.val()||{};
-  });
-  listeners.push(unsub);
+  const iRef=db.ref('dodgeball/'+roomCode+'/inputs');
+  const cb=iRef.on('value',snap=>{latestInputs=snap.val()||{};});
+  listeners.push(()=>iRef.off('value',cb));
 }
 
-// ══ GAME START ════════════════════════════════════════════════════════════════
-
-async function startGame(){
-  const snap=await get(ref(db,`dodgeball/${roomCode}/lobby`));
-  const lobby=snap.val()||{};
-  const pCount=Object.keys(lobby).length;
-  const gamePlayers={};
-  const positions=spawnPositions(pCount);
-  Object.entries(lobby).forEach(([pcid,p],i)=>{
-    gamePlayers[pcid]={name:p.name,color:p.color,x:positions[i].x,y:positions[i].y,alive:true,score:0,elimBy:null};
-  });
-  localState={players:gamePlayers,balls:{}};
-  await set(ref(db,`dodgeball/${roomCode}/gameState`),localState);
-  await update(ref(db,`dodgeball/${roomCode}`),{status:'playing'});
-  startHostGame();
-}
+// ══ GAME ════════════════════════════════════════════════════════════════════
 
 function spawnPositions(n){
-  const pos=[];
-  const cx=AW/2,cy=AH/2,r=Math.min(AW,AH)*0.3;
-  for(let i=0;i<n;i++){
-    const angle=(2*Math.PI*i/n)-Math.PI/2;
-    pos.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)});
-  }
+  const cx=AW/2,cy=AH/2,r=Math.min(AW,AH)*.3,pos=[];
+  for(let i=0;i<n;i++){const a=(2*Math.PI*i/n)-Math.PI/2;pos.push({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});}
   return pos;
 }
 
+async function startGame(){
+  const snap=await db.ref('dodgeball/'+roomCode+'/lobby').once('value');
+  const lobby=snap.val()||{};
+  const pcids=Object.keys(lobby),pos=spawnPositions(pcids.length),gp={};
+  pcids.forEach((pcid,i)=>{gp[pcid]={name:lobby[pcid].name,color:lobby[pcid].color,x:pos[i].x,y:pos[i].y,alive:true,score:0};});
+  localState={players:gp,balls:{}};
+  await db.ref('dodgeball/'+roomCode+'/gameState').set(localState);
+  await db.ref('dodgeball/'+roomCode).update({status:'playing'});
+  startHostGame();
+}
+
 function startHostGame(){
-  gameRunning=true;
-  setupCanvas();setupControls();listenInputs();
-  showCanvas();
+  gameRunning=true;setupCanvas();setupControls();listenInputs();showCanvas();
   let last=Date.now();
   hostInterval=setInterval(()=>{
-    const now=Date.now();
-    const dt=(now-last)/16.67;
-    last=now;
-    if(dt<5)hostTick(Math.min(dt,3));
+    const now=Date.now(),dt=Math.min((now-last)/16.67,3);last=now;
+    if(dt>0)hostTick(dt);
   },33);
 }
 
 function startClientGame(){
-  gameRunning=true;
-  setupCanvas();setupControls();listenGame();
-  showCanvas();
+  gameRunning=true;setupCanvas();setupControls();listenGame();showCanvas();
   setInterval(()=>sendInputs(),50);
 }
 
-// ══ CANVAS & CONTROLS ════════════════════════════════════════════════════════
+// ── Canvas & Controls ────────────────────────────────────────────────────────
 
 function setupCanvas(){
   canvas.width=AW;canvas.height=AH;
-  const scale=Math.min(window.innerWidth/AW,window.innerHeight/AH)*0.97;
-  canvas.style.width=(AW*scale)+'px';
-  canvas.style.height=(AH*scale)+'px';
+  const sc=Math.min(window.innerWidth/AW,window.innerHeight/AH)*.98;
+  canvas.style.width=AW*sc+'px';canvas.style.height=AH*sc+'px';
+  canvasWrap.style.width=AW*sc+'px';canvasWrap.style.height=AH*sc+'px';
+  const tc=document.getElementById('touchControls');
+  tc.style.width=AW*sc+'px';tc.style.height=AH*sc+'px';
 }
 
 function setupControls(){
-  keys={};
-  window.addEventListener('keydown',e=>{
-    keys[e.key.toLowerCase()]=true;
-    if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase()))e.preventDefault();
-  });
+  keys={};throwPending=false;touchJoy={x:0,y:0};
+  window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' ')e.preventDefault();});
   window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
   canvas.addEventListener('mousemove',e=>{
     const r=canvas.getBoundingClientRect();
     mousePos.x=(e.clientX-r.left)*(AW/r.width);
     mousePos.y=(e.clientY-r.top)*(AH/r.height);
   });
-  canvas.addEventListener('click',()=>throwPending=true);
-  canvas.style.cursor='crosshair';
+  if(!isMobile) canvas.addEventListener('click',()=>throwPending=true);
+  if(isMobile){
+    const tc=document.getElementById('touchControls');tc.style.display='block';
+    setupJoystick();setupThrowBtn();
+  }
 }
 
-// ══ INPUTS ════════════════════════════════════════════════════════════════════
+function setupJoystick(){
+  const zone=document.getElementById('joyZone'),knob=document.getElementById('joyKnob');
+  let tid=null,ox=0,oy=0;const zr=55;
+  zone.addEventListener('touchstart',e=>{
+    e.preventDefault();const t=e.changedTouches[0];tid=t.identifier;
+    const r=zone.getBoundingClientRect();ox=r.left+r.width/2;oy=r.top+r.height/2;
+  },{passive:false});
+  document.addEventListener('touchmove',e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier===tid){
+        e.preventDefault();
+        const dx=t.clientX-ox,dy=t.clientY-oy,dist=Math.sqrt(dx*dx+dy*dy);
+        const ratio=Math.min(dist,zr)/zr,ang=Math.atan2(dy,dx);
+        knob.style.transform=`translate(calc(-50% + ${Math.cos(ang)*ratio*zr}px),calc(-50% + ${Math.sin(ang)*ratio*zr}px))`;
+        touchJoy={x:Math.cos(ang)*ratio,y:Math.sin(ang)*ratio};
+      }
+    }
+  },{passive:false});
+  const end=e=>{for(const t of e.changedTouches)if(t.identifier===tid){knob.style.transform='translate(-50%,-50%)';touchJoy={x:0,y:0};tid=null;}};
+  document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+}
+
+function setupThrowBtn(){
+  const btn=document.getElementById('throwBtn');
+  btn.addEventListener('touchstart',e=>{
+    e.preventDefault();btn.classList.add('active');
+    const pl=localState?.players?.[myPCID];
+    if(pl){const ang=Math.atan2(AH/2-pl.y,AW/2-pl.x);mousePos.x=pl.x+Math.cos(ang)*200;mousePos.y=pl.y+Math.sin(ang)*200;}
+    throwPending=true;
+  },{passive:false});
+  btn.addEventListener('touchend',()=>btn.classList.remove('active'));
+  // Tap right portion of canvas to aim+throw
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const r=canvas.getBoundingClientRect();
+    for(const t of e.changedTouches){
+      const tx=(t.clientX-r.left)*(AW/r.width),ty=(t.clientY-r.top)*(AH/r.height);
+      if(tx>AW*.38){mousePos.x=tx;mousePos.y=ty;throwPending=true;}
+    }
+  },{passive:false});
+}
 
 async function sendInputs(){
   if(!gameRunning||!roomCode)return;
-  const p=localState?.players?.[myPCID];
-  if(!p||!p.alive)return;
-  const dx=(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0);
-  const dy=(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0);
+  const p=localState?.players?.[myPCID];if(!p||!p.alive)return;
+  const dx=(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0)+(touchJoy.x||0);
+  const dy=(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0)+(touchJoy.y||0);
   const inp={dx,dy,throw:0};
   if(throwPending){
     const ang=Math.atan2(mousePos.y-p.y,mousePos.x-p.x);
-    inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;
-    throwPending=false;
+    inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;throwPending=false;
   }
-  await set(ref(db,`dodgeball/${roomCode}/inputs/${myPCID}`),inp);
+  await db.ref('dodgeball/'+roomCode+'/inputs/'+myPCID).set(inp);
 }
-
-// ══ HOST TICK ════════════════════════════════════════════════════════════════
 
 function hostTick(dt){
   if(!localState)return;
   const {players,balls}=localState;
-
-  // Process player movement + throws
   Object.entries(players).forEach(([pcid,pl])=>{
     if(!pl.alive)return;
     let inp=latestInputs[pcid]||{};
     if(pcid===myPCID){
-      inp={
-        dx:(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0),
-        dy:(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0),
-      };
+      inp={dx:(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0)+(touchJoy.x||0),
+           dy:(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0)+(touchJoy.y||0)};
       if(throwPending){
         const ang=Math.atan2(mousePos.y-pl.y,mousePos.x-pl.x);
-        inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;
-        throwPending=false;
+        inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;throwPending=false;
       }
     }
-    // Move
-    const len=Math.sqrt((inp.dx||0)**2+(inp.dy||0)**2)||1;
-    pl.x=clamp(pl.x+(inp.dx||0)/len*SPDUP*dt,PAD+PR,AW-PAD-PR);
-    pl.y=clamp(pl.y+(inp.dy||0)/len*SPDUP*dt,PAD+PR,AH-PAD-PR);
-    // Throw
+    const len=Math.hypot(inp.dx||0,inp.dy||0)||1;
+    const move=Math.hypot(inp.dx||0,inp.dy||0)>0.05;
+    if(move){pl.x=clamp(pl.x+(inp.dx||0)/len*SPDUP*dt,PAD+PR,AW-PAD-PR);pl.y=clamp(pl.y+(inp.dy||0)/len*SPDUP*dt,PAD+PR,AH-PAD-PR);}
     const now=Date.now();
     if(inp.throw&&inp.tvx!==undefined&&(!throwCooldown[pcid]||now-throwCooldown[pcid]>700)){
-      const bid=`b${now}${ballSeq++}`;
-      balls[bid]={x:pl.x,y:pl.y,vx:inp.tvx,vy:inp.tvy,owner:pcid,color:pl.color,bounces:0};
+      balls['b'+now+(ballSeq++)]={x:pl.x,y:pl.y,vx:inp.tvx,vy:inp.tvy,owner:pcid,color:pl.color,bounces:0};
       throwCooldown[pcid]=now;
-      if(pcid!==myPCID) set(ref(db,`dodgeball/${roomCode}/inputs/${pcid}/throw`),0);
     }
   });
-
-  // Move balls + collisions
   const del=[];
   Object.entries(balls).forEach(([bid,b])=>{
     b.x+=b.vx*dt;b.y+=b.vy*dt;
-    // Wall bounce
     if(b.x<PAD+BR){b.x=PAD+BR;b.vx*=-1;b.bounces++;}
     if(b.x>AW-PAD-BR){b.x=AW-PAD-BR;b.vx*=-1;b.bounces++;}
     if(b.y<PAD+BR){b.y=PAD+BR;b.vy*=-1;b.bounces++;}
     if(b.y>AH-PAD-BR){b.y=AH-PAD-BR;b.vy*=-1;b.bounces++;}
     if(b.bounces>8){del.push(bid);return;}
-    // Player hit
     Object.entries(players).forEach(([pcid,pl])=>{
       if(!pl.alive||pcid===b.owner)return;
       if(Math.hypot(b.x-pl.x,b.y-pl.y)<PR+BR){
-        pl.alive=false;pl.elimBy=players[b.owner]?.name||'???';
-        if(players[b.owner])players[b.owner].score=(players[b.owner].score||0)+1;
+        pl.alive=false;if(players[b.owner])players[b.owner].score=(players[b.owner].score||0)+1;
         del.push(bid);
       }
     });
   });
   del.forEach(id=>delete balls[id]);
-
   localState={players,balls};
-  set(ref(db,`dodgeball/${roomCode}/gameState`),localState);
+  db.ref('dodgeball/'+roomCode+'/gameState').set(localState);
   renderFrame();
-
-  // Win check
   const alive=Object.values(players).filter(p=>p.alive);
-  if(Object.keys(players).length>1&&alive.length<=1){
-    const w=alive[0];
-    endGame(w?w.name:'Draw');
-  }
+  if(Object.keys(players).length>1&&alive.length<=1)endGame(alive[0]?alive[0].name:'Draw');
 }
 
-async function endGame(winnerName){
+async function endGame(winner){
   clearInterval(hostInterval);hostInterval=null;gameRunning=false;
-  await update(ref(db,`dodgeball/${roomCode}`),{status:'gameover',winner:winnerName});
-  showGameOver(winnerName);
+  await db.ref('dodgeball/'+roomCode).update({status:'gameover',winner});
+  showGameOver(winner);
 }
 
-// ══ GAME OVER ════════════════════════════════════════════════════════════════
-
-function showGameOver(winnerName){
-  gameRunning=false;
-  clearInterval(hostInterval);hostInterval=null;
-  cleanListeners();
-  const ov=document.getElementById('gameoverOverlay');
-  document.getElementById('goWinner').textContent=winnerName;
-  const isMe=localState?.players&&Object.values(localState.players).find(p=>p.name===winnerName&&p.score>=0);
-  document.getElementById('goSub').textContent=winnerName===myName?'you won! 🎉':'eliminated all opponents';
-  ov.classList.add('show');
-
+function showGameOver(winner){
+  gameRunning=false;clearInterval(hostInterval);hostInterval=null;cleanListeners();
+  document.getElementById('goWinner').textContent=winner;
+  document.getElementById('goSub').textContent=winner===myName?'you crushed it! 🎉':'eliminated all opponents';
+  document.getElementById('goOverlay').classList.add('show');
   document.getElementById('goAgain').onclick=async()=>{
-    ov.classList.remove('show');
-    // Reset to lobby
-    const snap=await get(ref(db,`dodgeball/${roomCode}/gameState/players`));
-    const gp=snap.val()||{};
-    const lobby={};
-    Object.entries(gp).forEach(([pcid,p])=>lobby[pcid]={name:p.name,color:p.color,colorIdx:0});
-    await set(ref(db,`dodgeball/${roomCode}`),{status:'lobby',host:myPCID,lobby});
+    document.getElementById('goOverlay').classList.remove('show');
+    const snap=await db.ref('dodgeball/'+roomCode+'/gameState/players').once('value');
+    const gp=snap.val()||{};const lobby={};let ci=0;
+    Object.entries(gp).forEach(([pcid,p])=>{lobby[pcid]={name:p.name,color:p.color,colorIdx:ci++};});
+    await db.ref('dodgeball/'+roomCode).set({status:'lobby',host:myPCID,lobby});
     isHost=true;listenLobby();
   };
   document.getElementById('goMenu').onclick=()=>{
-    ov.classList.remove('show');cleanListeners();
-    roomCode=null;isHost=false;gameRunning=false;
-    renderMenu();
+    document.getElementById('goOverlay').classList.remove('show');cleanListeners();
+    roomCode=null;isHost=false;gameRunning=false;renderMenu();
   };
 }
 
-// ══ RENDER ════════════════════════════════════════════════════════════════════
-
-// Particle trails
-let trails=[];
+// ── Render ──────────────────────────────────────────────────────────────────
 
 function renderFrame(){
   if(!localState)return;
   const {players,balls}=localState;
   ctx.clearRect(0,0,AW,AH);
-
-  // Background
-  drawBackground();
-
+  drawBG();
   // Trails
   trails=trails.filter(t=>t.life>0);
-  trails.forEach(t=>{
-    ctx.globalAlpha=t.life/t.maxLife*0.5;
-    ctx.fillStyle=t.color;
-    ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
-    t.life-=2;
-  });
+  trails.forEach(t=>{ctx.globalAlpha=t.life/t.max*.4;ctx.fillStyle=t.color;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();t.life-=2;});
   ctx.globalAlpha=1;
-
-  // Add ball trails
-  Object.values(balls).forEach(b=>{
-    if(Math.random()>0.5)trails.push({x:b.x,y:b.y,r:BR*0.7,color:b.color,life:18,maxLife:18});
-  });
-
-  // Arena border glow
-  ctx.strokeStyle='rgba(0,119,255,.2)';ctx.lineWidth=1;
-  ctx.strokeRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
-
-  // Draw players
+  Object.values(balls).forEach(b=>{if(Math.random()>.4)trails.push({x:b.x,y:b.y,r:BR*.55,color:b.color,life:12,max:12});});
+  // Players
   Object.entries(players).forEach(([pcid,pl])=>{
-    const isMe=pcid===myPCID;
-    ctx.globalAlpha=pl.alive?1:0.18;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.4)';
-    ctx.beginPath();ctx.ellipse(pl.x+4,pl.y+7,PR,PR*0.35,0,0,Math.PI*2);ctx.fill();
-    // Glow for alive
-    if(pl.alive){
-      ctx.shadowColor=pl.color;ctx.shadowBlur=isMe?25:14;
-    }
-    // Body
-    ctx.fillStyle=pl.color;
-    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=pl.alive?1:.16;
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(pl.x+3,pl.y+6,PR*.85,PR*.3,0,0,Math.PI*2);ctx.fill();
+    if(pl.alive){ctx.shadowColor=pl.color;ctx.shadowBlur=pcid===myPCID?22:10;}
+    ctx.fillStyle=pl.color;ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
-    // Specular
-    const grad=ctx.createRadialGradient(pl.x-6,pl.y-6,0,pl.x,pl.y,PR);
-    grad.addColorStop(0,'rgba(255,255,255,.35)');
-    grad.addColorStop(1,'rgba(0,0,0,.2)');
-    ctx.fillStyle=grad;
-    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
-    // Outline
-    ctx.strokeStyle=isMe?'rgba(255,255,255,.9)':'rgba(255,255,255,.35)';
-    ctx.lineWidth=isMe?2.5:1;
-    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.stroke();
-    // You indicator ring
-    if(isMe&&pl.alive){
-      ctx.strokeStyle=`rgba(255,255,255,.2)`;ctx.lineWidth=1;
-      ctx.setLineDash([4,4]);
-      ctx.beginPath();ctx.arc(pl.x,pl.y,PR+9,0,Math.PI*2);ctx.stroke();
-      ctx.setLineDash([]);
+    const g=ctx.createRadialGradient(pl.x-5,pl.y-5,0,pl.x,pl.y,PR);
+    g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(0,0,0,.15)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=pcid===myPCID?'rgba(255,255,255,.8)':'rgba(255,255,255,.28)';
+    ctx.lineWidth=pcid===myPCID?2.5:1;ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.stroke();
+    if(pcid===myPCID&&pl.alive){
+      ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.arc(pl.x,pl.y,PR+9,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
     }
-    // Name
-    ctx.globalAlpha=pl.alive?1:0.25;
-    ctx.font=`bold 10px 'Share Tech Mono',monospace`;
-    ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.9)';
-    ctx.fillText(pl.name,pl.x,pl.y-PR-7);
-    // Score
-    if(pl.score>0){
-      ctx.font=`bold 12px 'Share Tech Mono'`;
-      ctx.fillStyle=pl.color;
-      ctx.fillText('★'.repeat(Math.min(pl.score,7)),pl.x,pl.y+PR+14);
-    }
+    ctx.globalAlpha=pl.alive?1:.22;
+    ctx.font="bold 10px 'Share Tech Mono',monospace";ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,255,255,.82)';ctx.fillText(pl.name,pl.x,pl.y-PR-6);
+    if(pl.score>0){ctx.fillStyle=pl.color;ctx.fillText('★'.repeat(Math.min(pl.score,8)),pl.x,pl.y+PR+13);}
     ctx.globalAlpha=1;
   });
-
-  // Draw balls
+  // Balls
   Object.values(balls).forEach(b=>{
-    ctx.shadowColor=b.color;ctx.shadowBlur=18;
-    ctx.fillStyle=b.color;
-    ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;
-    // Core highlight
-    ctx.fillStyle='rgba(255,255,255,.7)';
-    ctx.beginPath();ctx.arc(b.x-2,b.y-2,BR*.4,0,Math.PI*2);ctx.fill();
+    ctx.shadowColor=b.color;ctx.shadowBlur=18;ctx.fillStyle=b.color;
+    ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.arc(b.x-2,b.y-2,BR*.35,0,Math.PI*2);ctx.fill();
   });
-
-  // HUD
   drawHUD(players);
 }
 
-function drawBackground(){
-  // Dark court
-  ctx.fillStyle='#060c1a';
-  ctx.fillRect(0,0,AW,AH);
-  // Court surface
-  const cg=ctx.createLinearGradient(0,PAD,0,AH-PAD);
-  cg.addColorStop(0,'#071020');cg.addColorStop(1,'#050d18');
-  ctx.fillStyle=cg;
-  ctx.fillRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
-  // Grid lines
-  ctx.strokeStyle='rgba(0,119,255,.06)';ctx.lineWidth=1;
-  for(let x=PAD;x<AW-PAD;x+=50){ctx.beginPath();ctx.moveTo(x,PAD);ctx.lineTo(x,AH-PAD);ctx.stroke();}
-  for(let y=PAD;y<AH-PAD;y+=50){ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(AW-PAD,y);ctx.stroke();}
-  // Center line
-  ctx.strokeStyle='rgba(0,119,255,.12)';ctx.lineWidth=2;
-  ctx.setLineDash([10,6]);
-  ctx.beginPath();ctx.moveTo(AW/2,PAD);ctx.lineTo(AW/2,AH-PAD);ctx.stroke();
-  ctx.setLineDash([]);
-  // Center circle
-  ctx.strokeStyle='rgba(0,119,255,.1)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(AW/2,AH/2,70,0,Math.PI*2);ctx.stroke();
-  // Wall glow
-  ctx.strokeStyle='rgba(0,119,255,.25)';ctx.lineWidth=2;
-  ctx.strokeRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
-  // Corner marks
-  ctx.strokeStyle='rgba(0,245,212,.3)';ctx.lineWidth=2;
-  const cm=15;const cs=[[PAD,PAD],[AW-PAD,PAD],[AW-PAD,AH-PAD],[PAD,AH-PAD]];
-  cs.forEach(([x,y],i)=>{
-    const sx=i%3===0?1:-1,sy=i<2?1:-1;
+function drawBG(){
+  ctx.fillStyle='#060c1a';ctx.fillRect(0,0,AW,AH);
+  const g=ctx.createLinearGradient(0,PAD,0,AH-PAD);g.addColorStop(0,'#071020');g.addColorStop(1,'#050d18');
+  ctx.fillStyle=g;ctx.fillRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
+  ctx.strokeStyle='rgba(0,119,255,.045)';ctx.lineWidth=1;
+  for(let x=PAD;x<=AW-PAD;x+=50){ctx.beginPath();ctx.moveTo(x,PAD);ctx.lineTo(x,AH-PAD);ctx.stroke();}
+  for(let y=PAD;y<=AH-PAD;y+=50){ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(AW-PAD,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(0,119,255,.1)';ctx.lineWidth=2;ctx.setLineDash([10,6]);
+  ctx.beginPath();ctx.moveTo(AW/2,PAD);ctx.lineTo(AW/2,AH-PAD);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(0,119,255,.08)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(AW/2,AH/2,66,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(0,119,255,.2)';ctx.lineWidth=2;ctx.strokeRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
+  ctx.strokeStyle='rgba(0,245,212,.25)';ctx.lineWidth=2;const cm=14;
+  [[PAD,PAD,1,1],[AW-PAD,PAD,-1,1],[AW-PAD,AH-PAD,-1,-1],[PAD,AH-PAD,1,-1]].forEach(([x,y,sx,sy])=>{
     ctx.beginPath();ctx.moveTo(x,y+sy*cm);ctx.lineTo(x,y);ctx.lineTo(x+sx*cm,y);ctx.stroke();
   });
 }
 
 function drawHUD(players){
-  const entries=Object.entries(players);
-  ctx.font=`11px 'Share Tech Mono',monospace`;
-  ctx.textAlign='left';
-  let y=PAD+16;
-  entries.forEach(([pcid,pl])=>{
-    ctx.globalAlpha=pl.alive?1:0.4;
-    ctx.fillStyle=pl.color;
-    ctx.shadowColor=pl.color;ctx.shadowBlur=pl.alive?8:0;
-    ctx.fillRect(PAD+8,y-9,9,9);
-    ctx.shadowBlur=0;
-    ctx.fillStyle=pl.alive?'rgba(200,216,240,.9)':'rgba(100,120,150,.5)';
-    ctx.fillText(pl.name+(pl.alive?'':' ✕'),PAD+22,y);
-    if(pl.score>0){
-      ctx.fillStyle='rgba(255,214,10,.8)';
-      ctx.fillText(' ★'+pl.score,PAD+22+ctx.measureText(pl.name+(pl.alive?'':' ✕')).width,y);
-    }
-    y+=18;
+  let y=PAD+14;ctx.textAlign='left';
+  Object.entries(players).forEach(([pcid,pl])=>{
+    ctx.globalAlpha=pl.alive?1:.32;ctx.shadowColor=pl.color;ctx.shadowBlur=pl.alive?5:0;
+    ctx.fillStyle=pl.color;ctx.fillRect(PAD+6,y-8,8,8);ctx.shadowBlur=0;
+    ctx.font="10px 'Share Tech Mono',monospace";
+    ctx.fillStyle=pl.alive?'rgba(200,216,240,.82)':'rgba(100,120,150,.5)';
+    ctx.fillText(pl.name+(pl.alive?'':' ✕'),PAD+19,y);y+=15;
   });
   ctx.globalAlpha=1;
-  // Cooldown indicator for my player
   const me=players[myPCID];
   if(me&&me.alive){
-    const cd=throwCooldown[myPCID];
-    const now=Date.now();const maxCd=700;
-    if(cd&&now-cd<maxCd){
-      const pct=(now-cd)/maxCd;
-      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(AW-PAD-80,AH-PAD-22,80,8);
-      ctx.fillStyle=`rgba(0,245,212,${0.7+pct*0.3})`;
-      ctx.fillRect(AW-PAD-80,AH-PAD-22,80*pct,8);
-      ctx.font=`9px 'Share Tech Mono'`;ctx.fillStyle='rgba(200,216,240,.6)';ctx.textAlign='center';
-      ctx.fillText('RECHARGE',AW-PAD-40,AH-PAD-26);
-    } else {
-      ctx.font=`9px 'Share Tech Mono'`;ctx.fillStyle='rgba(0,245,212,.5)';ctx.textAlign='center';
-      ctx.fillText('● READY',AW-PAD-40,AH-PAD-16);
-    }
+    const now=Date.now(),cd=throwCooldown[myPCID],elapsed=cd?now-cd:9999,pct=Math.min(elapsed/700,1);
+    const bw=74,bx=AW-PAD-bw,by=AH-PAD-18;
+    ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(bx,by,bw,7);
+    ctx.fillStyle=pct>=1?'rgba(0,245,212,.8)':'rgba(0,119,255,.55)';ctx.fillRect(bx,by,bw*pct,7);
+    ctx.font="8px 'Share Tech Mono'";ctx.textAlign='center';
+    ctx.fillStyle=pct>=1?'rgba(0,245,212,.55)':'rgba(100,150,200,.45)';
+    ctx.fillText(pct>=1?'● READY':'RECHARGE',bx+bw/2,by-4);
   }
 }
 
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-renderLogin();
+boot();
 </script>
 </body>
 </html>

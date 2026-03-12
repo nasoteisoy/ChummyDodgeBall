@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏐 ChummyBall</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#050810;--panel:#0a0f1e;--border:#1a2a4a;
+    --red:#ff2d55;--cyan:#00f5d4;--yellow:#ffd60a;
+    --blue:#0077ff;--green:#39ff14;--purple:#bf5fff;
+    --text:#c8d8f0;--dim:#4a5a7a;
+  }
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'Share Tech Mono',monospace;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;overflow:hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% -10%,rgba(0,119,255,.15),transparent),
+      radial-gradient(ellipse 60% 40% at 80% 110%,rgba(0,245,212,.1),transparent);
+  }
+  #ui{
+    width:420px;position:relative;
+    animation:fadeIn .4s ease;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .logo{
+    font-family:'Orbitron',monospace;font-size:2.8rem;font-weight:900;
+    text-align:center;letter-spacing:4px;margin-bottom:6px;
+    background:linear-gradient(135deg,var(--cyan),var(--blue),var(--red));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    filter:drop-shadow(0 0 20px rgba(0,245,212,.4));
+  }
+  .tagline{text-align:center;color:var(--dim);font-size:.75rem;letter-spacing:3px;margin-bottom:32px;text-transform:uppercase}
+  .panel{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:28px;
+    box-shadow:0 0 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .section-label{
+    font-size:.6rem;letter-spacing:3px;color:var(--dim);
+    text-transform:uppercase;margin-bottom:8px;
+  }
+  input{
+    width:100%;background:rgba(255,255,255,.04);
+    border:1px solid var(--border);border-radius:4px;
+    color:var(--text);padding:12px 14px;
+    font-family:'Share Tech Mono',monospace;font-size:.9rem;
+    transition:border-color .2s,box-shadow .2s;outline:none;
+    letter-spacing:2px;
+  }
+  input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,245,212,.12)}
+  input::placeholder{color:var(--dim);letter-spacing:1px}
+  .btn{
+    display:block;width:100%;padding:13px;border:none;border-radius:4px;
+    font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
+    letter-spacing:2px;text-transform:uppercase;cursor:pointer;
+    transition:all .15s ease;margin-top:10px;
+  }
+  .btn-primary{background:var(--cyan);color:#050810}
+  .btn-primary:hover{background:#00ddc0;box-shadow:0 0 20px rgba(0,245,212,.4)}
+  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-secondary:hover{border-color:var(--text);background:rgba(255,255,255,.04)}
+  .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,45,85,.3)}
+  .btn-danger:hover{background:rgba(255,45,85,.1)}
+  .btn-go{background:var(--green);color:#050810}
+  .btn-go:hover{background:#2ddf0f;box-shadow:0 0 20px rgba(57,255,20,.4)}
+  .room-code{
+    font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;
+    letter-spacing:10px;color:var(--yellow);text-align:center;
+    padding:16px;background:rgba(255,214,10,.06);
+    border:1px solid rgba(255,214,10,.2);border-radius:6px;margin:12px 0;
+    text-shadow:0 0 20px rgba(255,214,10,.5);
+  }
+  .player-list{margin:12px 0}
+  .player-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:4px;
+    background:rgba(255,255,255,.03);border:1px solid var(--border);
+    margin-bottom:6px;transition:border-color .2s;
+  }
+  .player-row:hover{border-color:rgba(255,255,255,.1)}
+  .player-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px currentColor}
+  .player-name{flex:1;font-size:.85rem}
+  .you-badge{
+    font-size:.55rem;letter-spacing:2px;padding:2px 6px;
+    background:rgba(0,245,212,.15);color:var(--cyan);border-radius:2px;
+  }
+  .divider{height:1px;background:var(--border);margin:18px 0}
+  .hint{font-size:.65rem;color:var(--dim);text-align:center;letter-spacing:1px;margin-top:12px;line-height:1.7}
+  .status-msg{
+    text-align:center;color:var(--dim);font-size:.75rem;
+    letter-spacing:2px;padding:14px;
+    border:1px dashed rgba(255,255,255,.06);border-radius:4px;
+    margin-top:10px;
+  }
+  .err{color:var(--red);font-size:.75rem;margin-top:6px;text-align:center;min-height:16px}
+  #canvasWrap{
+    display:none;position:relative;
+    box-shadow:0 0 60px rgba(0,119,255,.2),0 0 120px rgba(0,0,0,.8);
+  }
+  canvas{display:block}
+  #gameoverOverlay{
+    display:none;position:absolute;inset:0;
+    background:rgba(5,8,16,.92);
+    backdrop-filter:blur(8px);
+    flex-direction:column;align-items:center;justify-content:center;
+    font-family:'Orbitron',monospace;text-align:center;
+    animation:fadeIn .5s ease;
+  }
+  #gameoverOverlay.show{display:flex}
+  #gameoverOverlay h2{
+    font-size:1rem;letter-spacing:4px;color:var(--dim);
+    text-transform:uppercase;margin-bottom:10px;
+  }
+  #gameoverOverlay .winner-name{
+    font-size:2.2rem;font-weight:900;
+    background:linear-gradient(135deg,var(--yellow),var(--red));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;margin-bottom:6px;
+    filter:drop-shadow(0 0 15px rgba(255,214,10,.5));
+  }
+  #gameoverOverlay .sub{
+    font-family:'Share Tech Mono',monospace;
+    font-size:.75rem;color:var(--dim);letter-spacing:2px;margin-bottom:30px;
+  }
+  .go-btns{display:flex;gap:10px}
+  .go-btn{
+    padding:10px 20px;border-radius:4px;font-family:'Orbitron',monospace;
+    font-size:.65rem;font-weight:700;letter-spacing:2px;
+    text-transform:uppercase;cursor:pointer;border:none;
+    transition:all .15s;
+  }
+  .go-btn.again{background:var(--green);color:#050810}
+  .go-btn.again:hover{box-shadow:0 0 20px rgba(57,255,20,.4)}
+  .go-btn.menu{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .go-btn.menu:hover{border-color:var(--text)}
+</style>
+</head>
+<body>
+
+<div id="ui"></div>
+
+<div id="canvasWrap">
+  <canvas id="canvas"></canvas>
+  <div id="gameoverOverlay">
+    <h2>🏆 winner</h2>
+    <div class="winner-name" id="goWinner"></div>
+    <div class="sub" id="goSub">eliminated all opponents</div>
+    <div class="go-btns">
+      <button class="go-btn again" id="goAgain">Play Again</button>
+      <button class="go-btn menu" id="goMenu">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set, get, update, remove, onValue, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:"AIzaSyDVbt_8GuRuHJRPAN7jFXbs_lJUfUHNxHE",
+  authDomain:"chummy-games.firebaseapp.com",
+  databaseURL:"https://chummy-games-default-rtdb.firebaseio.com",
+  projectId:"chummy-games",storageBucket:"chummy-games.firebasestorage.app",
+  messagingSenderId:"869241598273",
+  appId:"1:869241598273:web:d97492b7308f785c37f1c0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+// ── PCID ──────────────────────────────────────────────────────────────────────
+function getOrCreatePCID(){
+  const k='ChummyGames-PC-ID';
+  let id=localStorage.getItem(k);
+  if(!id||id.length!==12){
+    id=Array.from({length:12},()=>'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)]).join('');
+    localStorage.setItem(k,id);
+  }
+  return id;
+}
+function genCode(n){return Array.from({length:n},()=>'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)]).join('');}
+
+const myPCID=getOrCreatePCID();
+const COLORS=['#ff2d55','#00f5d4','#ffd60a','#0077ff','#39ff14','#bf5fff','#ff6b2b','#00cfff'];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let myName=localStorage.getItem('ChummyGames-Name')||'';
+let roomCode=null,isHost=false,gameRunning=false;
+let hostInterval=null;
+let listeners=[];
+let localState=null;
+let keys={},mousePos={x:400,y:300},throwPending=false;
+let throwCooldown={};
+let ballSeq=0;
+let latestInputs={};
+
+// ── Canvas & Arena ────────────────────────────────────────────────────────────
+const AW=800,AH=550;
+const PAD=28;
+const PR=18,BR=9;
+const SPDUP=4,BSPD=9;
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+const ui=document.getElementById('ui');
+const canvasWrap=document.getElementById('canvasWrap');
+function clearUI(){ui.innerHTML='';ui.style.display='block';canvasWrap.style.display='none';}
+function showCanvas(){ui.style.display='none';canvasWrap.style.display='block';}
+
+// ══ VIEWS ════════════════════════════════════════════════════════════════════
+
+function renderLogin(){
+  clearUI();
+  ui.innerHTML=`
+    <div class="logo">CHUMMYBALL</div>
+    <div class="tagline">2D Multiplayer Dodgeball</div>
+    <div class="panel">
+      <div class="section-label">Your callsign</div>
+      <input id="nameIn" maxlength="14" placeholder="Enter name..." value="${myName}" autocomplete="off">
+      <div class="err" id="nameErr"></div>
+      <button class="btn btn-primary" id="btnEnter">▶ ENTER ARENA</button>
+    </div>
+    <div class="hint">Local ID: ${myPCID.slice(0,4)}...${myPCID.slice(-4)}</div>`;
+  const inp=document.getElementById('nameIn');
+  inp.focus();inp.select();
+  const go=()=>{
+    const n=inp.value.trim();
+    if(!n){document.getElementById('nameErr').textContent='Name cannot be empty';return;}
+    myName=n;localStorage.setItem('ChummyGames-Name',n);
+    renderMenu();
+  };
+  inp.addEventListener('keydown',e=>e.key==='Enter'&&go());
+  document.getElementById('btnEnter').addEventListener('click',go);
+}
+
+function renderMenu(){
+  clearUI();
+  ui.innerHTML=`
+    <div class="logo">CHUMMYBALL</div>
+    <div class="tagline">2D Multiplayer Dodgeball</div>
+    <div class="panel">
+      <div style="text-align:center;margin-bottom:20px">
+        <span style="color:var(--dim);font-size:.7rem;letter-spacing:2px">PLAYING AS </span>
+        <span style="color:var(--cyan);font-size:.9rem">${myName}</span>
+      </div>
+      <button class="btn btn-go" id="btnHost">⚡ CREATE ROOM</button>
+      <button class="btn btn-secondary" id="btnJoin">🔗 JOIN ROOM</button>
+      <div class="divider"></div>
+      <button class="btn btn-danger" id="btnName">✏ Change Name</button>
+    </div>
+    <div class="hint">WASD · MOVE &nbsp;|&nbsp; CLICK · THROW &nbsp;|&nbsp; LAST STANDING WINS</div>`;
+  document.getElementById('btnHost').addEventListener('click',hostRoom);
+  document.getElementById('btnJoin').addEventListener('click',renderJoin);
+  document.getElementById('btnName').addEventListener('click',renderLogin);
+}
+
+function renderJoin(){
+  clearUI();
+  ui.innerHTML=`
+    <div class="logo">CHUMMYBALL</div>
+    <div class="tagline">2D Multiplayer Dodgeball</div>
+    <div class="panel">
+      <div class="section-label">Room code</div>
+      <input id="codeIn" maxlength="6" placeholder="ABCDEF" autocomplete="off"
+        style="text-transform:uppercase;text-align:center;letter-spacing:8px;font-size:1.2rem">
+      <div class="err" id="joinErr"></div>
+      <button class="btn btn-primary" id="btnDoJoin">▶ JOIN</button>
+      <button class="btn btn-secondary" id="btnBack">← BACK</button>
+    </div>`;
+  const inp=document.getElementById('codeIn');
+  inp.focus();
+  const go=async()=>{
+    const code=inp.value.trim().toUpperCase();
+    document.getElementById('joinErr').textContent='';
+    if(code.length!==6){document.getElementById('joinErr').textContent='Enter 6-letter code';return;}
+    await joinRoom(code);
+  };
+  inp.addEventListener('keydown',e=>e.key==='Enter'&&go());
+  document.getElementById('btnDoJoin').addEventListener('click',go);
+  document.getElementById('btnBack').addEventListener('click',renderMenu);
+}
+
+function renderLobby(players){
+  clearUI();
+  const entries=Object.entries(players||{});
+  const playerRows=entries.map(([pcid,p])=>`
+    <div class="player-row">
+      <div class="player-dot" style="color:${p.color};background:${p.color}"></div>
+      <span class="player-name">${p.name}</span>
+      ${pcid===myPCID?'<span class="you-badge">YOU</span>':''}
+    </div>`).join('');
+
+  ui.innerHTML=`
+    <div class="logo" style="font-size:1.8rem">CHUMMYBALL</div>
+    <div class="tagline" style="margin-bottom:16px">LOBBY</div>
+    <div class="panel">
+      <div class="section-label">Room Code</div>
+      <div class="room-code">${roomCode}</div>
+      <div class="section-label" style="margin-top:16px">Players (${entries.length})</div>
+      <div class="player-list" id="playerList">${playerRows}</div>
+      ${isHost
+        ? `<button class="btn btn-go" id="btnStart">${entries.length<2?'⚠ NEED 2+ PLAYERS':'⚡ START GAME'}</button>`
+        : `<div class="status-msg">⏳ WAITING FOR HOST TO START...</div>`}
+      <button class="btn btn-danger" id="btnLeave" style="margin-top:8px">← LEAVE ROOM</button>
+    </div>
+    <div class="hint">WASD · MOVE &nbsp;|&nbsp; CLICK · THROW &nbsp;|&nbsp; LAST STANDING WINS</div>`;
+
+  if(isHost){
+    const btnStart=document.getElementById('btnStart');
+    btnStart.addEventListener('click',()=>{
+      if(entries.length>=2)startGame();
+    });
+  }
+  document.getElementById('btnLeave').addEventListener('click',leaveRoom);
+}
+
+// ══ ROOM LOGIC ════════════════════════════════════════════════════════════════
+
+async function hostRoom(){
+  roomCode=genCode(6);isHost=true;
+  const colorIdx=0;
+  await set(ref(db,`dodgeball/${roomCode}`),{
+    status:'lobby',host:myPCID,
+    lobby:{[myPCID]:{name:myName,color:COLORS[colorIdx],colorIdx}}
+  });
+  onDisconnect(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`)).remove();
+  listenLobby();
+}
+
+async function joinRoom(code){
+  const snap=await get(ref(db,`dodgeball/${code}`));
+  if(!snap.exists()){document.getElementById('joinErr').textContent='Room not found';return;}
+  const data=snap.val();
+  if(data.status!=='lobby'){document.getElementById('joinErr').textContent='Game already started';return;}
+  roomCode=code;isHost=false;
+  const taken=new Set(Object.values(data.lobby||{}).map(p=>p.colorIdx));
+  let ci=0;while(taken.has(ci))ci++;
+  await update(ref(db,`dodgeball/${roomCode}/lobby`),{
+    [myPCID]:{name:myName,color:COLORS[ci%COLORS.length],colorIdx:ci}
+  });
+  onDisconnect(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`)).remove();
+  listenLobby();
+}
+
+async function leaveRoom(){
+  cleanListeners();
+  await remove(ref(db,`dodgeball/${roomCode}/lobby/${myPCID}`));
+  roomCode=null;isHost=false;
+  renderMenu();
+}
+
+// ══ LISTENERS ════════════════════════════════════════════════════════════════
+
+function cleanListeners(){listeners.forEach(u=>u());listeners=[];}
+
+function listenLobby(){
+  cleanListeners();
+  const unsub1=onValue(ref(db,`dodgeball/${roomCode}/lobby`),snap=>{
+    const data=snap.val()||{};
+    const el=document.getElementById('playerList');
+    if(el){
+      const entries=Object.entries(data);
+      el.innerHTML=entries.map(([pcid,p])=>`
+        <div class="player-row">
+          <div class="player-dot" style="color:${p.color};background:${p.color}"></div>
+          <span class="player-name">${p.name}</span>
+          ${pcid===myPCID?'<span class="you-badge">YOU</span>':''}
+        </div>`).join('');
+      // Update start button
+      const btn=document.getElementById('btnStart');
+      if(btn) btn.textContent=entries.length<2?'⚠ NEED 2+ PLAYERS':'⚡ START GAME';
+    } else {
+      renderLobby(data);
+    }
+  });
+  listeners.push(unsub1);
+
+  const unsub2=onValue(ref(db,`dodgeball/${roomCode}/status`),snap=>{
+    if(snap.val()==='playing'){
+      cleanListeners();
+      if(!isHost) startClientGame();
+    }
+  });
+  listeners.push(unsub2);
+}
+
+function listenGame(){
+  cleanListeners();
+  const unsub1=onValue(ref(db,`dodgeball/${roomCode}/gameState`),snap=>{
+    if(snap.val()){localState=snap.val();if(gameRunning)renderFrame();}
+  });
+  listeners.push(unsub1);
+  const unsub2=onValue(ref(db,`dodgeball/${roomCode}/status`),snap=>{
+    if(snap.val()==='gameover'){
+      get(ref(db,`dodgeball/${roomCode}/winner`)).then(s=>showGameOver(s.val()));
+    }
+  });
+  listeners.push(unsub2);
+}
+
+function listenInputs(){
+  const unsub=onValue(ref(db,`dodgeball/${roomCode}/inputs`),snap=>{
+    latestInputs=snap.val()||{};
+  });
+  listeners.push(unsub);
+}
+
+// ══ GAME START ════════════════════════════════════════════════════════════════
+
+async function startGame(){
+  const snap=await get(ref(db,`dodgeball/${roomCode}/lobby`));
+  const lobby=snap.val()||{};
+  const pCount=Object.keys(lobby).length;
+  const gamePlayers={};
+  const positions=spawnPositions(pCount);
+  Object.entries(lobby).forEach(([pcid,p],i)=>{
+    gamePlayers[pcid]={name:p.name,color:p.color,x:positions[i].x,y:positions[i].y,alive:true,score:0,elimBy:null};
+  });
+  localState={players:gamePlayers,balls:{}};
+  await set(ref(db,`dodgeball/${roomCode}/gameState`),localState);
+  await update(ref(db,`dodgeball/${roomCode}`),{status:'playing'});
+  startHostGame();
+}
+
+function spawnPositions(n){
+  const pos=[];
+  const cx=AW/2,cy=AH/2,r=Math.min(AW,AH)*0.3;
+  for(let i=0;i<n;i++){
+    const angle=(2*Math.PI*i/n)-Math.PI/2;
+    pos.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)});
+  }
+  return pos;
+}
+
+function startHostGame(){
+  gameRunning=true;
+  setupCanvas();setupControls();listenInputs();
+  showCanvas();
+  let last=Date.now();
+  hostInterval=setInterval(()=>{
+    const now=Date.now();
+    const dt=(now-last)/16.67;
+    last=now;
+    if(dt<5)hostTick(Math.min(dt,3));
+  },33);
+}
+
+function startClientGame(){
+  gameRunning=true;
+  setupCanvas();setupControls();listenGame();
+  showCanvas();
+  setInterval(()=>sendInputs(),50);
+}
+
+// ══ CANVAS & CONTROLS ════════════════════════════════════════════════════════
+
+function setupCanvas(){
+  canvas.width=AW;canvas.height=AH;
+  const scale=Math.min(window.innerWidth/AW,window.innerHeight/AH)*0.97;
+  canvas.style.width=(AW*scale)+'px';
+  canvas.style.height=(AH*scale)+'px';
+}
+
+function setupControls(){
+  keys={};
+  window.addEventListener('keydown',e=>{
+    keys[e.key.toLowerCase()]=true;
+    if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase()))e.preventDefault();
+  });
+  window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    mousePos.x=(e.clientX-r.left)*(AW/r.width);
+    mousePos.y=(e.clientY-r.top)*(AH/r.height);
+  });
+  canvas.addEventListener('click',()=>throwPending=true);
+  canvas.style.cursor='crosshair';
+}
+
+// ══ INPUTS ════════════════════════════════════════════════════════════════════
+
+async function sendInputs(){
+  if(!gameRunning||!roomCode)return;
+  const p=localState?.players?.[myPCID];
+  if(!p||!p.alive)return;
+  const dx=(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0);
+  const dy=(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0);
+  const inp={dx,dy,throw:0};
+  if(throwPending){
+    const ang=Math.atan2(mousePos.y-p.y,mousePos.x-p.x);
+    inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;
+    throwPending=false;
+  }
+  await set(ref(db,`dodgeball/${roomCode}/inputs/${myPCID}`),inp);
+}
+
+// ══ HOST TICK ════════════════════════════════════════════════════════════════
+
+function hostTick(dt){
+  if(!localState)return;
+  const {players,balls}=localState;
+
+  // Process player movement + throws
+  Object.entries(players).forEach(([pcid,pl])=>{
+    if(!pl.alive)return;
+    let inp=latestInputs[pcid]||{};
+    if(pcid===myPCID){
+      inp={
+        dx:(keys['a']||keys['arrowleft']?-1:0)+(keys['d']||keys['arrowright']?1:0),
+        dy:(keys['w']||keys['arrowup']?-1:0)+(keys['s']||keys['arrowdown']?1:0),
+      };
+      if(throwPending){
+        const ang=Math.atan2(mousePos.y-pl.y,mousePos.x-pl.x);
+        inp.throw=1;inp.tvx=Math.cos(ang)*BSPD;inp.tvy=Math.sin(ang)*BSPD;
+        throwPending=false;
+      }
+    }
+    // Move
+    const len=Math.sqrt((inp.dx||0)**2+(inp.dy||0)**2)||1;
+    pl.x=clamp(pl.x+(inp.dx||0)/len*SPDUP*dt,PAD+PR,AW-PAD-PR);
+    pl.y=clamp(pl.y+(inp.dy||0)/len*SPDUP*dt,PAD+PR,AH-PAD-PR);
+    // Throw
+    const now=Date.now();
+    if(inp.throw&&inp.tvx!==undefined&&(!throwCooldown[pcid]||now-throwCooldown[pcid]>700)){
+      const bid=`b${now}${ballSeq++}`;
+      balls[bid]={x:pl.x,y:pl.y,vx:inp.tvx,vy:inp.tvy,owner:pcid,color:pl.color,bounces:0};
+      throwCooldown[pcid]=now;
+      if(pcid!==myPCID) set(ref(db,`dodgeball/${roomCode}/inputs/${pcid}/throw`),0);
+    }
+  });
+
+  // Move balls + collisions
+  const del=[];
+  Object.entries(balls).forEach(([bid,b])=>{
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+    // Wall bounce
+    if(b.x<PAD+BR){b.x=PAD+BR;b.vx*=-1;b.bounces++;}
+    if(b.x>AW-PAD-BR){b.x=AW-PAD-BR;b.vx*=-1;b.bounces++;}
+    if(b.y<PAD+BR){b.y=PAD+BR;b.vy*=-1;b.bounces++;}
+    if(b.y>AH-PAD-BR){b.y=AH-PAD-BR;b.vy*=-1;b.bounces++;}
+    if(b.bounces>8){del.push(bid);return;}
+    // Player hit
+    Object.entries(players).forEach(([pcid,pl])=>{
+      if(!pl.alive||pcid===b.owner)return;
+      if(Math.hypot(b.x-pl.x,b.y-pl.y)<PR+BR){
+        pl.alive=false;pl.elimBy=players[b.owner]?.name||'???';
+        if(players[b.owner])players[b.owner].score=(players[b.owner].score||0)+1;
+        del.push(bid);
+      }
+    });
+  });
+  del.forEach(id=>delete balls[id]);
+
+  localState={players,balls};
+  set(ref(db,`dodgeball/${roomCode}/gameState`),localState);
+  renderFrame();
+
+  // Win check
+  const alive=Object.values(players).filter(p=>p.alive);
+  if(Object.keys(players).length>1&&alive.length<=1){
+    const w=alive[0];
+    endGame(w?w.name:'Draw');
+  }
+}
+
+async function endGame(winnerName){
+  clearInterval(hostInterval);hostInterval=null;gameRunning=false;
+  await update(ref(db,`dodgeball/${roomCode}`),{status:'gameover',winner:winnerName});
+  showGameOver(winnerName);
+}
+
+// ══ GAME OVER ════════════════════════════════════════════════════════════════
+
+function showGameOver(winnerName){
+  gameRunning=false;
+  clearInterval(hostInterval);hostInterval=null;
+  cleanListeners();
+  const ov=document.getElementById('gameoverOverlay');
+  document.getElementById('goWinner').textContent=winnerName;
+  const isMe=localState?.players&&Object.values(localState.players).find(p=>p.name===winnerName&&p.score>=0);
+  document.getElementById('goSub').textContent=winnerName===myName?'you won! 🎉':'eliminated all opponents';
+  ov.classList.add('show');
+
+  document.getElementById('goAgain').onclick=async()=>{
+    ov.classList.remove('show');
+    // Reset to lobby
+    const snap=await get(ref(db,`dodgeball/${roomCode}/gameState/players`));
+    const gp=snap.val()||{};
+    const lobby={};
+    Object.entries(gp).forEach(([pcid,p])=>lobby[pcid]={name:p.name,color:p.color,colorIdx:0});
+    await set(ref(db,`dodgeball/${roomCode}`),{status:'lobby',host:myPCID,lobby});
+    isHost=true;listenLobby();
+  };
+  document.getElementById('goMenu').onclick=()=>{
+    ov.classList.remove('show');cleanListeners();
+    roomCode=null;isHost=false;gameRunning=false;
+    renderMenu();
+  };
+}
+
+// ══ RENDER ════════════════════════════════════════════════════════════════════
+
+// Particle trails
+let trails=[];
+
+function renderFrame(){
+  if(!localState)return;
+  const {players,balls}=localState;
+  ctx.clearRect(0,0,AW,AH);
+
+  // Background
+  drawBackground();
+
+  // Trails
+  trails=trails.filter(t=>t.life>0);
+  trails.forEach(t=>{
+    ctx.globalAlpha=t.life/t.maxLife*0.5;
+    ctx.fillStyle=t.color;
+    ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
+    t.life-=2;
+  });
+  ctx.globalAlpha=1;
+
+  // Add ball trails
+  Object.values(balls).forEach(b=>{
+    if(Math.random()>0.5)trails.push({x:b.x,y:b.y,r:BR*0.7,color:b.color,life:18,maxLife:18});
+  });
+
+  // Arena border glow
+  ctx.strokeStyle='rgba(0,119,255,.2)';ctx.lineWidth=1;
+  ctx.strokeRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
+
+  // Draw players
+  Object.entries(players).forEach(([pcid,pl])=>{
+    const isMe=pcid===myPCID;
+    ctx.globalAlpha=pl.alive?1:0.18;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,.4)';
+    ctx.beginPath();ctx.ellipse(pl.x+4,pl.y+7,PR,PR*0.35,0,0,Math.PI*2);ctx.fill();
+    // Glow for alive
+    if(pl.alive){
+      ctx.shadowColor=pl.color;ctx.shadowBlur=isMe?25:14;
+    }
+    // Body
+    ctx.fillStyle=pl.color;
+    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // Specular
+    const grad=ctx.createRadialGradient(pl.x-6,pl.y-6,0,pl.x,pl.y,PR);
+    grad.addColorStop(0,'rgba(255,255,255,.35)');
+    grad.addColorStop(1,'rgba(0,0,0,.2)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.fill();
+    // Outline
+    ctx.strokeStyle=isMe?'rgba(255,255,255,.9)':'rgba(255,255,255,.35)';
+    ctx.lineWidth=isMe?2.5:1;
+    ctx.beginPath();ctx.arc(pl.x,pl.y,PR,0,Math.PI*2);ctx.stroke();
+    // You indicator ring
+    if(isMe&&pl.alive){
+      ctx.strokeStyle=`rgba(255,255,255,.2)`;ctx.lineWidth=1;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.arc(pl.x,pl.y,PR+9,0,Math.PI*2);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // Name
+    ctx.globalAlpha=pl.alive?1:0.25;
+    ctx.font=`bold 10px 'Share Tech Mono',monospace`;
+    ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillText(pl.name,pl.x,pl.y-PR-7);
+    // Score
+    if(pl.score>0){
+      ctx.font=`bold 12px 'Share Tech Mono'`;
+      ctx.fillStyle=pl.color;
+      ctx.fillText('★'.repeat(Math.min(pl.score,7)),pl.x,pl.y+PR+14);
+    }
+    ctx.globalAlpha=1;
+  });
+
+  // Draw balls
+  Object.values(balls).forEach(b=>{
+    ctx.shadowColor=b.color;ctx.shadowBlur=18;
+    ctx.fillStyle=b.color;
+    ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // Core highlight
+    ctx.fillStyle='rgba(255,255,255,.7)';
+    ctx.beginPath();ctx.arc(b.x-2,b.y-2,BR*.4,0,Math.PI*2);ctx.fill();
+  });
+
+  // HUD
+  drawHUD(players);
+}
+
+function drawBackground(){
+  // Dark court
+  ctx.fillStyle='#060c1a';
+  ctx.fillRect(0,0,AW,AH);
+  // Court surface
+  const cg=ctx.createLinearGradient(0,PAD,0,AH-PAD);
+  cg.addColorStop(0,'#071020');cg.addColorStop(1,'#050d18');
+  ctx.fillStyle=cg;
+  ctx.fillRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
+  // Grid lines
+  ctx.strokeStyle='rgba(0,119,255,.06)';ctx.lineWidth=1;
+  for(let x=PAD;x<AW-PAD;x+=50){ctx.beginPath();ctx.moveTo(x,PAD);ctx.lineTo(x,AH-PAD);ctx.stroke();}
+  for(let y=PAD;y<AH-PAD;y+=50){ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(AW-PAD,y);ctx.stroke();}
+  // Center line
+  ctx.strokeStyle='rgba(0,119,255,.12)';ctx.lineWidth=2;
+  ctx.setLineDash([10,6]);
+  ctx.beginPath();ctx.moveTo(AW/2,PAD);ctx.lineTo(AW/2,AH-PAD);ctx.stroke();
+  ctx.setLineDash([]);
+  // Center circle
+  ctx.strokeStyle='rgba(0,119,255,.1)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(AW/2,AH/2,70,0,Math.PI*2);ctx.stroke();
+  // Wall glow
+  ctx.strokeStyle='rgba(0,119,255,.25)';ctx.lineWidth=2;
+  ctx.strokeRect(PAD,PAD,AW-PAD*2,AH-PAD*2);
+  // Corner marks
+  ctx.strokeStyle='rgba(0,245,212,.3)';ctx.lineWidth=2;
+  const cm=15;const cs=[[PAD,PAD],[AW-PAD,PAD],[AW-PAD,AH-PAD],[PAD,AH-PAD]];
+  cs.forEach(([x,y],i)=>{
+    const sx=i%3===0?1:-1,sy=i<2?1:-1;
+    ctx.beginPath();ctx.moveTo(x,y+sy*cm);ctx.lineTo(x,y);ctx.lineTo(x+sx*cm,y);ctx.stroke();
+  });
+}
+
+function drawHUD(players){
+  const entries=Object.entries(players);
+  ctx.font=`11px 'Share Tech Mono',monospace`;
+  ctx.textAlign='left';
+  let y=PAD+16;
+  entries.forEach(([pcid,pl])=>{
+    ctx.globalAlpha=pl.alive?1:0.4;
+    ctx.fillStyle=pl.color;
+    ctx.shadowColor=pl.color;ctx.shadowBlur=pl.alive?8:0;
+    ctx.fillRect(PAD+8,y-9,9,9);
+    ctx.shadowBlur=0;
+    ctx.fillStyle=pl.alive?'rgba(200,216,240,.9)':'rgba(100,120,150,.5)';
+    ctx.fillText(pl.name+(pl.alive?'':' ✕'),PAD+22,y);
+    if(pl.score>0){
+      ctx.fillStyle='rgba(255,214,10,.8)';
+      ctx.fillText(' ★'+pl.score,PAD+22+ctx.measureText(pl.name+(pl.alive?'':' ✕')).width,y);
+    }
+    y+=18;
+  });
+  ctx.globalAlpha=1;
+  // Cooldown indicator for my player
+  const me=players[myPCID];
+  if(me&&me.alive){
+    const cd=throwCooldown[myPCID];
+    const now=Date.now();const maxCd=700;
+    if(cd&&now-cd<maxCd){
+      const pct=(now-cd)/maxCd;
+      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(AW-PAD-80,AH-PAD-22,80,8);
+      ctx.fillStyle=`rgba(0,245,212,${0.7+pct*0.3})`;
+      ctx.fillRect(AW-PAD-80,AH-PAD-22,80*pct,8);
+      ctx.font=`9px 'Share Tech Mono'`;ctx.fillStyle='rgba(200,216,240,.6)';ctx.textAlign='center';
+      ctx.fillText('RECHARGE',AW-PAD-40,AH-PAD-26);
+    } else {
+      ctx.font=`9px 'Share Tech Mono'`;ctx.fillStyle='rgba(0,245,212,.5)';ctx.textAlign='center';
+      ctx.fillText('● READY',AW-PAD-40,AH-PAD-16);
+    }
+  }
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderLogin();
+</script>
+</body>
+</html>
